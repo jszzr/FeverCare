@@ -56,7 +56,7 @@ struct OnboardingView: View {
         VStack(alignment: .leading, spacing: 18) {
             OnboardingFeatureRow(
                 symbol: "internaldrive.fill",
-                title: "纯本地存储",
+                title: "数据只属于你",
                 detail: AppCopy.privacy
             )
             OnboardingFeatureRow(

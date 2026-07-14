@@ -21,6 +21,7 @@ struct SettingsView: View {
                 childrenSection
                 unitSection
                 liveActivitySection
+                iCloudSection
                 privacySection
                 aboutSection
             }
@@ -128,6 +129,28 @@ struct SettingsView: View {
             Text("实时活动")
         } footer: {
             Text("开启后,病程进行中会在锁屏与灵动岛实时显示最近体温和上次用药时间。")
+        }
+    }
+
+    // MARK: - iCloud 同步
+
+    private var iCloudSection: some View {
+        Section {
+            Label {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("iCloud 同步")
+                    Text("登录 iCloud 后自动开启,无需设置")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            } icon: {
+                Image(systemName: "icloud")
+                    .foregroundStyle(Brand.accent)
+            }
+        } header: {
+            Text("多设备同步")
+        } footer: {
+            Text("数据经由你自己的 iCloud 私有空间在你的设备间同步(如爸爸妈妈各自的手机登录同一 Apple 账户)。未登录 iCloud 时数据仅保存在本机。")
         }
     }
 

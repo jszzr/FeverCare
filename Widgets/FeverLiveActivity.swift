@@ -98,13 +98,28 @@ struct FeverLiveActivity: Widget {
                     .padding(.top, 2)
                 }
             } compactLeading: {
-                Image(systemName: "thermometer.variable")
-                    .foregroundStyle(feverTempColor(forOptional: context.state.latestTempC))
+                HStack(spacing: 1) {
+                    Image(systemName: "thermometer.variable")
+                    Text(feverTempNumber(context.state.latestTempC, unitRaw: context.state.tempUnitRaw) + "°")
+                        .monospacedDigit()
+                }
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(feverTempColor(forOptional: context.state.latestTempC))
             } compactTrailing: {
-                Text(feverTempNumber(context.state.latestTempC, unitRaw: context.state.tempUnitRaw) + "°")
-                    .font(.caption.weight(.semibold))
-                    .monospacedDigit()
-                    .foregroundStyle(feverTempColor(forOptional: context.state.latestTempC))
+                // 距上次用药的实时计时(仅陈述事实)
+                if let medAt = context.state.lastMedAt {
+                    HStack(spacing: 2) {
+                        Image(systemName: "pills.fill")
+                            .font(.caption2)
+                            .foregroundStyle(.blue)
+                        Text(timerInterval: medAt...Date.distantFuture, countsDown: false)
+                            .font(.caption.weight(.semibold))
+                            .monospacedDigit()
+                            .frame(maxWidth: 48, alignment: .leading)
+                            .minimumScaleFactor(0.6)
+                            .foregroundStyle(.white)
+                    }
+                }
             } minimal: {
                 Text(feverTempNumber(context.state.latestTempC, unitRaw: context.state.tempUnitRaw) + "°")
                     .font(.caption2.weight(.semibold))

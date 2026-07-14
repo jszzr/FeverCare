@@ -21,7 +21,9 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.zhirui.fevercare
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_ENTITLEMENTS: FeverCare.entitlements
         GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_UIBackgroundModes: remote-notification
         INFOPLIST_KEY_CFBundleDisplayName: 退烧记录
         INFOPLIST_KEY_NSSupportsLiveActivities: YES
         INFOPLIST_KEY_UILaunchScreen_Generation: YES

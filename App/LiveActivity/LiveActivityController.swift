@@ -67,7 +67,7 @@ final class LiveActivityController {
             latestTempAt: latestTemp?.timestamp,
             lastMedName: lastMed?.medicationName,
             lastMedAt: lastMed?.timestamp,
-            eventCount: episode.events.count,
+            eventCount: episode.eventCount,
             tempUnitRaw: UserDefaults.standard.string(forKey: "tempUnit") ?? TempUnit.celsius.rawValue
         )
     }

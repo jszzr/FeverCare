@@ -13,7 +13,10 @@ enum AppCopy {
 
     static let disclaimerShort = "仅记录事实,不构成医疗建议;用药请遵医嘱。"
 
-    static let privacy = "所有数据仅保存在这台设备本地,不上传任何服务器。"
+    static let privacy = """
+    数据保存在你的设备上;如你登录了 iCloud,会经由你自己的 iCloud 私有空间在你的设备之间同步。\
+    我们没有服务器,任何人(包括开发者)都无法访问你的数据。
+    """
 
     static let onboardingWelcome = "孩子发烧的夜里,帮你记清每一次体温和用药,交接不断层,复诊说得清。"
 

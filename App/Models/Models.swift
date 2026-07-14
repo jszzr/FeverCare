@@ -10,8 +10,9 @@ final class Child {
     var emoji: String = "🧒"
     var birthDate: Date?
     var createdAt: Date = Date()
+    // CloudKit 同步要求所有关系为可选;统一经 episodeList 访问
     @Relationship(deleteRule: .cascade, inverse: \Episode.child)
-    var episodes: [Episode] = []
+    var episodes: [Episode]? = []
 
     init(name: String, emoji: String = "🧒", birthDate: Date? = nil) {
         self.id = UUID()
@@ -21,12 +22,14 @@ final class Child {
         self.createdAt = Date()
     }
 
+    var episodeList: [Episode] { episodes ?? [] }
+
     var activeEpisode: Episode? {
-        episodes.first { $0.endedAt == nil }
+        episodeList.first { $0.endedAt == nil }
     }
 
     var pastEpisodes: [Episode] {
-        episodes.filter { $0.endedAt != nil }.sorted { $0.startedAt > $1.startedAt }
+        episodeList.filter { $0.endedAt != nil }.sorted { $0.startedAt > $1.startedAt }
     }
 
     var ageDescription: String? {
@@ -50,8 +53,9 @@ final class Episode {
     var endedAt: Date?
     var note: String = ""
     var child: Child?
+    // CloudKit 同步要求所有关系为可选;统一经 eventList 访问
     @Relationship(deleteRule: .cascade, inverse: \CareEvent.episode)
-    var events: [CareEvent] = []
+    var events: [CareEvent]? = []
 
     init(startedAt: Date = Date()) {
         self.id = UUID()
@@ -60,8 +64,10 @@ final class Episode {
 
     var isActive: Bool { endedAt == nil }
 
+    var eventList: [CareEvent] { events ?? [] }
+
     var sortedEvents: [CareEvent] {
-        events.sorted { $0.timestamp < $1.timestamp }
+        eventList.sorted { $0.timestamp < $1.timestamp }
     }
 
     var temperatureEvents: [CareEvent] {
@@ -77,6 +83,8 @@ final class Episode {
     var maxTemperatureC: Double? {
         temperatureEvents.compactMap(\.temperatureC).max()
     }
+
+    var eventCount: Int { eventList.count }
 
     var lastMedicationEvent: CareEvent? { medicationEvents.last }
 
