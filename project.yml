@@ -19,12 +19,12 @@ targets:
       - Shared
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.zhirui.fevercare
+        PRODUCT_BUNDLE_IDENTIFIER: com.zhirui.shaotuitui
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         CODE_SIGN_ENTITLEMENTS: FeverCare.entitlements
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_UIBackgroundModes: remote-notification
-        INFOPLIST_KEY_CFBundleDisplayName: 退烧记录
+        INFOPLIST_KEY_CFBundleDisplayName: 烧退退
         INFOPLIST_KEY_NSSupportsLiveActivities: YES
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
@@ -42,7 +42,7 @@ targets:
       - Shared
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.zhirui.fevercare.widgets
+        PRODUCT_BUNDLE_IDENTIFIER: com.zhirui.shaotuitui.widgets
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: Widgets/Info.plist
         CURRENT_PROJECT_VERSION: 1

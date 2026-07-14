@@ -7,7 +7,7 @@ import os
 @MainActor
 final class LiveActivityController {
     static let shared = LiveActivityController()
-    private let logger = Logger(subsystem: "com.zhirui.fevercare", category: "LiveActivity")
+    private let logger = Logger(subsystem: "com.zhirui.shaotuitui", category: "LiveActivity")
 
     private init() {}
 

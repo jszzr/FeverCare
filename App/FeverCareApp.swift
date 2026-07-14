@@ -4,7 +4,7 @@ import os
 
 @main
 struct FeverCareApp: App {
-    private static let logger = Logger(subsystem: "com.zhirui.fevercare", category: "App")
+    private static let logger = Logger(subsystem: "com.zhirui.shaotuitui", category: "App")
 
     /// 优先启用 iCloud 私有库同步;不可用时(未登录 iCloud、无 CloudKit 签名权限等)
     /// 自动退回纯本地存储,数据与行为完全一致,只是不跨设备同步。
@@ -15,7 +15,7 @@ struct FeverCareApp: App {
         // ubiquityIdentityToken 仅在「构建带 iCloud 权限 且 设备已登录 iCloud」时非 nil。
         if FileManager.default.ubiquityIdentityToken != nil {
             do {
-                let cloud = ModelConfiguration(schema: schema, cloudKitDatabase: .private("iCloud.com.zhirui.fevercare"))
+                let cloud = ModelConfiguration(schema: schema, cloudKitDatabase: .private("iCloud.com.zhirui.shaotuitui"))
                 let container = try ModelContainer(for: schema, configurations: [cloud])
                 logger.info("Using CloudKit-backed store")
                 return container
