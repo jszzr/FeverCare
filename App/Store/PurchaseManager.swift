@@ -9,9 +9,9 @@ import os
 final class PurchaseManager: ObservableObject {
     static let shared = PurchaseManager()
 
-    static let productID = "com.zhirui.shaotuitui.lifetime"
-    static let trialDays = 7
-    static let firstLaunchKey = "firstLaunchAt"
+    nonisolated static let productID = "com.zhirui.shaotuitui.lifetime"
+    nonisolated static let trialDays = 7
+    nonisolated static let firstLaunchKey = "firstLaunchAt"
 
     @Published private(set) var isPurchased = false
     @Published private(set) var product: Product?

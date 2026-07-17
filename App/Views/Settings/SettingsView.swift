@@ -219,6 +219,7 @@ struct SettingsView: View {
         Section {
             Toggle("匿名使用统计", isOn: $analyticsEnabled)
                 .tint(Brand.accent)
+                .disabled(!Analytics.isConfigured)
             Text(AppCopy.privacy)
                 .font(.footnote)
                 .foregroundStyle(.secondary)

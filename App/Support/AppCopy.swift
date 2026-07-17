@@ -28,7 +28,7 @@ enum AppCopy {
     static let trialNote = "全部功能免费试用 \(PurchaseManager.trialDays) 天,之后一次买断、永久使用;已有记录永远可查看导出。"
 
     static let analyticsNote = """
-    为改进产品,App 会发送匿名使用统计(仅功能使用次数、App 版本等,\
-    不含任何体温、用药、孩子信息),可随时在此关闭。
+    匿名使用统计在当前版本中尚未启用，不会发送任何统计数据。\
+    如后续启用，将只统计功能使用次数和 App 版本，不含体温、用药或孩子信息。
     """
 }

@@ -25,6 +25,9 @@ final class Analytics {
     private static let telemetryAppID = ""
     private static let endpoint = URL(string: "https://nom.telemetrydeck.com/v2/")!
 
+    /// 让设置页与实际网络行为保持一致：未配置 App ID 时不提供一个无效开关。
+    static var isConfigured: Bool { !telemetryAppID.isEmpty }
+
     static let enabledKey = "analyticsEnabled"
     private static let anonymousIDKey = "analyticsAnonymousID"
 
