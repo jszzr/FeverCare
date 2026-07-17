@@ -3,6 +3,9 @@ import SwiftData
 
 /// 设置页:孩子管理、温度单位、Live Activity 开关、隐私与免责、关于。
 struct SettingsView: View {
+    private let privacyPolicyURL = URL(string: "https://github.com/jszzr/FeverCare/blob/main/PRIVACY.md")!
+    private let supportURL = URL(string: "https://github.com/jszzr/FeverCare/blob/main/SUPPORT.md")!
+
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Child.createdAt) private var children: [Child]
 
@@ -164,6 +167,12 @@ struct SettingsView: View {
             Text(AppCopy.disclaimer)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
+            Link(destination: privacyPolicyURL) {
+                Label("隐私政策", systemImage: "hand.raised")
+            }
+            Link(destination: supportURL) {
+                Label("技术支持", systemImage: "questionmark.circle")
+            }
         }
     }
 
@@ -172,8 +181,14 @@ struct SettingsView: View {
     private var aboutSection: some View {
         Section("关于") {
             LabeledContent("应用名称", value: AppCopy.appName)
-            LabeledContent("版本", value: "0.1.0")
+            LabeledContent("版本", value: versionDescription)
         }
+    }
+
+    private var versionDescription: String {
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "–"
+        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "–"
+        return "\(version) (\(build))"
     }
 
     // MARK: - 操作
