@@ -36,7 +36,7 @@ targets:
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
         TARGETED_DEVICE_FAMILY: "1"
         CURRENT_PROJECT_VERSION: 2
-        MARKETING_VERSION: 0.1.0
+        MARKETING_VERSION: 0.2.0
       configs:
         Debug:
           APS_ENVIRONMENT: development
@@ -63,7 +63,7 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: Widgets/Info.plist
         CURRENT_PROJECT_VERSION: 2
-        MARKETING_VERSION: 0.1.0
+        MARKETING_VERSION: 0.2.0
       configs:
         Debug:
           CODE_SIGN_IDENTITY: Apple Development
@@ -78,3 +78,4 @@ schemes:
         FeverCare: all
     run:
       config: Debug
+      storeKitConfiguration: Products.storekit

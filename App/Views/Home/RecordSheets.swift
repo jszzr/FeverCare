@@ -143,6 +143,7 @@ struct TemperatureRecordSheet: View {
         event.episode = episode
         try? modelContext.save()
         LiveActivityController.shared.sync(episode: episode.child?.activeEpisode ?? episode)
+        Analytics.shared.track(.eventRecorded, ["kind": CareEventKind.temperature.rawValue])
         dismiss()
     }
 }
@@ -242,6 +243,7 @@ struct MedicationRecordSheet: View {
         event.episode = episode
         try? modelContext.save()
         LiveActivityController.shared.sync(episode: episode.child?.activeEpisode ?? episode)
+        Analytics.shared.track(.eventRecorded, ["kind": CareEventKind.medication.rawValue])
         dismiss()
     }
 }
@@ -317,6 +319,7 @@ struct ExtraRecordSheet: View {
         event.episode = episode
         try? modelContext.save()
         LiveActivityController.shared.sync(episode: episode.child?.activeEpisode ?? episode)
+        Analytics.shared.track(.eventRecorded, ["kind": kind.rawValue])
         dismiss()
     }
 }

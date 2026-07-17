@@ -69,6 +69,11 @@ struct OnboardingView: View {
                 title: "一键导出就诊报告",
                 detail: "把整段病程整理成医生一眼能读的 PDF 报告,复诊交接不断层。"
             )
+            OnboardingFeatureRow(
+                symbol: "sparkles",
+                title: "先试用,再决定",
+                detail: AppCopy.trialNote
+            )
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)

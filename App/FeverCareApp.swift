@@ -35,9 +35,14 @@ struct FeverCareApp: App {
 
     private let container = Self.makeContainer()
 
+    init() {
+        _ = PurchaseManager.shared
+    }
+
     var body: some Scene {
         WindowGroup {
             RootView()
+                .task { Analytics.shared.track(.appOpened) }
         }
         .modelContainer(container)
     }

@@ -11,11 +11,22 @@ struct HomeView: View {
     @AppStorage("selectedChildID") private var selectedChildID = ""
     @AppStorage("tempUnit") private var tempUnitRaw = TempUnit.celsius.rawValue
 
+    @ObservedObject private var purchases = PurchaseManager.shared
     @State private var activeSheet: HomeSheet?
     @State private var showEndConfirmation = false
+    @State private var showPaywall = false
 
     private var unit: TempUnit { TempUnit(rawValue: tempUnitRaw) ?? .celsius }
     private var child: Child? { children.selected(byID: selectedChildID) }
+
+    /// 新增记录前的买断/试用检查:无权限则弹付费墙
+    private func requireAccess(_ action: () -> Void) {
+        if purchases.hasFullAccess {
+            action()
+        } else {
+            showPaywall = true
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -23,6 +34,10 @@ struct HomeView: View {
                 if let child {
                     ScrollView {
                         VStack(spacing: 16) {
+                            if !purchases.isPurchased {
+                                trialBanner
+                            }
+
                             if let episode = child.activeEpisode {
                                 activeContent(episode: episode)
                             } else {
@@ -80,6 +95,16 @@ struct HomeView: View {
                     ExtraRecordSheet(episode: episode, kind: .note)
                 }
             }
+            .sheet(isPresented: $showPaywall) {
+                PaywallView()
+            }
+            #if DEBUG
+            .onAppear {
+                if ProcessInfo.processInfo.arguments.contains("-DemoPaywall") {
+                    showPaywall = true
+                }
+            }
+            #endif
         }
     }
 
@@ -113,6 +138,42 @@ struct HomeView: View {
         }
     }
 
+    // MARK: 试用横幅(未买断时展示)
+
+    private var trialBanner: some View {
+        Button {
+            showPaywall = true
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: purchases.isInTrial ? "sparkles" : "lock.fill")
+                    .font(.subheadline)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(purchases.isInTrial
+                         ? "试用中,还剩 \(purchases.trialDaysRemaining) 天"
+                         : "试用已结束")
+                        .font(.footnote.weight(.semibold))
+                    Text(purchases.isInTrial
+                         ? "一次买断,永久使用"
+                         : "买断后可继续记录,已有记录不受影响")
+                        .font(.caption2)
+                        .opacity(0.85)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .opacity(0.7)
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(
+                purchases.isInTrial ? Brand.accent.opacity(0.92) : Color.indigo.opacity(0.92),
+                in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
     // MARK: 无活跃病程
 
     @ViewBuilder
@@ -131,7 +192,7 @@ struct HomeView: View {
         .padding(.bottom, 12)
 
         Button {
-            startEpisode(for: child)
+            requireAccess { startEpisode(for: child) }
         } label: {
             Label("开始记录发烧", systemImage: "thermometer.variable")
         }
@@ -278,28 +339,28 @@ struct HomeView: View {
     private func actionGrid(episode: Episode) -> some View {
         LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
             Button {
-                activeSheet = .temperature(episode)
+                requireAccess { activeSheet = .temperature(episode) }
             } label: {
                 Label("记录体温", systemImage: CareEventKind.temperature.symbolName)
             }
             .buttonStyle(BigActionButtonStyle())
 
             Button {
-                activeSheet = .medication(episode)
+                requireAccess { activeSheet = .medication(episode) }
             } label: {
                 Label("记录用药", systemImage: CareEventKind.medication.symbolName)
             }
             .buttonStyle(BigActionButtonStyle(tint: .blue))
 
             Button {
-                activeSheet = .cooling(episode)
+                requireAccess { activeSheet = .cooling(episode) }
             } label: {
                 Label("物理降温", systemImage: CareEventKind.cooling.symbolName)
             }
             .buttonStyle(BigActionButtonStyle(tint: .teal))
 
             Button {
-                activeSheet = .note(episode)
+                requireAccess { activeSheet = .note(episode) }
             } label: {
                 Label("备注", systemImage: CareEventKind.note.symbolName)
             }
@@ -339,6 +400,7 @@ struct HomeView: View {
         episode.child = child
         try? modelContext.save()
         LiveActivityController.shared.sync(episode: child.activeEpisode)
+        Analytics.shared.track(.episodeStarted)
         activeSheet = .temperature(episode)
     }
 

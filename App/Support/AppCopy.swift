@@ -24,4 +24,11 @@ enum AppCopy {
 
     /// 常见退烧药名,仅作为输入便利的快捷选项(名称联想),不构成用药推荐。
     static let commonMedicationNames = ["布洛芬", "对乙酰氨基酚"]
+
+    static let trialNote = "全部功能免费试用 \(PurchaseManager.trialDays) 天,之后一次买断、永久使用;已有记录永远可查看导出。"
+
+    static let analyticsNote = """
+    为改进产品,App 会发送匿名使用统计(仅功能使用次数、App 版本等,\
+    不含任何体温、用药、孩子信息),可随时在此关闭。
+    """
 }

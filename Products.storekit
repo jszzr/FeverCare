@@ -1,0 +1,38 @@
+{
+  "identifier" : "8F2B9C4A-1D3E-4F5A-9B6C-7D8E9F0A1B2C",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "12.00",
+      "familyShareable" : false,
+      "internalID" : "6F1A2B3C",
+      "localizations" : [
+        {
+          "description" : "解锁全部功能,一次付费永久使用",
+          "displayName" : "烧退退完整版",
+          "locale" : "zh_CN"
+        },
+        {
+          "description" : "Unlock all features, pay once and use forever",
+          "displayName" : "ShaoTuiTui Full Version",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.zhirui.shaotuitui.lifetime",
+      "referenceName" : "完整版买断",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

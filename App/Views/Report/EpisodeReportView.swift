@@ -54,6 +54,7 @@ struct EpisodeReportView: View {
     private func generateAndShare() {
         if let url = ReportRenderer.renderPDF(episode: episode, unit: unit) {
             sharedPDF = SharedPDFFile(url: url)
+            Analytics.shared.track(.reportExported)
         } else {
             showRenderFailedAlert = true
         }

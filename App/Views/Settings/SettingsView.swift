@@ -12,15 +12,19 @@ struct SettingsView: View {
     @AppStorage("tempUnit") private var tempUnitRaw = TempUnit.celsius.rawValue
     @AppStorage("selectedChildID") private var selectedChildID = ""
     @AppStorage(LiveActivityController.enabledKey) private var liveActivityEnabled = true
+    @AppStorage(Analytics.enabledKey) private var analyticsEnabled = true
 
+    @ObservedObject private var purchases = PurchaseManager.shared
     @State private var showingAddChild = false
     @State private var editingChild: Child?
     @State private var childPendingDeletion: Child?
     @State private var showingDeleteDialog = false
+    @State private var showingPaywall = false
 
     var body: some View {
         NavigationStack {
             Form {
+                purchaseSection
                 childrenSection
                 unitSection
                 liveActivitySection
@@ -34,6 +38,9 @@ struct SettingsView: View {
             }
             .sheet(item: $editingChild) { child in
                 ChildEditSheet(child: child)
+            }
+            .sheet(isPresented: $showingPaywall) {
+                PaywallView()
             }
             .confirmationDialog(
                 "删除孩子",
@@ -57,6 +64,55 @@ struct SettingsView: View {
                     LiveActivityController.shared.sync(episode: nil)
                 }
             }
+        }
+    }
+
+    // MARK: - 完整版
+
+    private var purchaseSection: some View {
+        Section {
+            if purchases.isPurchased {
+                Label {
+                    Text("已解锁完整版,感谢支持")
+                } icon: {
+                    Image(systemName: "checkmark.seal.fill")
+                        .foregroundStyle(.green)
+                }
+            } else {
+                Button {
+                    showingPaywall = true
+                } label: {
+                    HStack {
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(purchases.isInTrial
+                                     ? "试用中,还剩 \(purchases.trialDaysRemaining) 天"
+                                     : "试用已结束")
+                                    .foregroundStyle(.primary)
+                                Text("一次买断,永久使用")
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "sparkles")
+                                .foregroundStyle(Brand.accent)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.tertiary)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+
+                Button("恢复购买") {
+                    Task { await purchases.restore() }
+                }
+                .font(.footnote)
+            }
+        } header: {
+            Text("完整版")
         }
     }
 
@@ -160,7 +216,9 @@ struct SettingsView: View {
     // MARK: - 隐私与免责
 
     private var privacySection: some View {
-        Section("隐私与免责") {
+        Section {
+            Toggle("匿名使用统计", isOn: $analyticsEnabled)
+                .tint(Brand.accent)
             Text(AppCopy.privacy)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
@@ -173,6 +231,10 @@ struct SettingsView: View {
             Link(destination: supportURL) {
                 Label("技术支持", systemImage: "questionmark.circle")
             }
+        } header: {
+            Text("隐私与免责")
+        } footer: {
+            Text(AppCopy.analyticsNote)
         }
     }
 
