@@ -1,37 +1,84 @@
 import SwiftUI
 import SwiftData
+import CoreData
 import os
 
 @main
 struct FeverCareApp: App {
     private static let logger = Logger(subsystem: "com.zhirui.shaotuitui", category: "App")
+    private static let cloudKitContainerIdentifier = "iCloud.com.zhirui.shaotuitui"
 
-    /// 优先启用 iCloud 私有库同步;不可用时(未登录 iCloud、无 CloudKit 签名权限等)
-    /// 自动退回纯本地存储,数据与行为完全一致,只是不跨设备同步。
+    /// CloudKit-backed SwiftData store 本身支持离线使用。不能用
+    /// `ubiquityIdentityToken` 判断 CloudKit 是否可用——该 token 代表的是
+    /// iCloud Drive Documents，而不是 CloudKit 账户状态。
     private static func makeContainer() -> ModelContainer {
         let schema = Schema([Child.self, Episode.self, CareEvent.self])
-        // 注意:缺少 iCloud entitlement 或未登录 iCloud 时,CloudKit 镜像会在
-        // 后台线程直接崩溃而不是抛错,try/catch 拦不住——必须先探测再启用。
-        // ubiquityIdentityToken 仅在「构建带 iCloud 权限 且 设备已登录 iCloud」时非 nil。
-        if FileManager.default.ubiquityIdentityToken != nil {
-            do {
-                let cloud = ModelConfiguration(schema: schema, cloudKitDatabase: .private("iCloud.com.zhirui.shaotuitui"))
-                let container = try ModelContainer(for: schema, configurations: [cloud])
-                logger.info("Using CloudKit-backed store")
-                return container
-            } catch {
-                logger.error("CloudKit store unavailable, falling back to local-only: \(String(describing: error))")
-            }
-        } else {
-            logger.info("iCloud unavailable (not signed in, or build lacks entitlement); using local store")
-        }
+        let cloud = ModelConfiguration(
+            schema: schema,
+            cloudKitDatabase: .private(cloudKitContainerIdentifier)
+        )
+
         do {
-            let local = ModelConfiguration(schema: schema, cloudKitDatabase: .none)
-            return try ModelContainer(for: schema, configurations: [local])
+            #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("-InitializeCloudKitSchema") {
+                try initializeDevelopmentCloudKitSchema(configuration: cloud)
+            }
+            #endif
+
+            let container = try ModelContainer(for: schema, configurations: [cloud])
+            logger.info("Using CloudKit-backed store")
+            return container
         } catch {
-            fatalError("无法创建本地数据库:\(error)")
+            // CloudKit-backed stores retain a local replica and work offline. Reaching
+            // here indicates a configuration/schema problem, not merely no network or
+            // no iCloud account; silently changing to another local-only store could
+            // make users believe their data is syncing when it is not.
+            fatalError("无法创建 CloudKit 数据库: \(error)")
         }
     }
+
+    #if DEBUG
+    /// Explicitly creates the development schema on Apple's servers. This path is
+    /// opt-in so ordinary debug launches do not repeatedly initialize the schema.
+    private static func initializeDevelopmentCloudKitSchema(
+        configuration: ModelConfiguration
+    ) throws {
+        try autoreleasepool {
+            let description = NSPersistentStoreDescription(url: configuration.url)
+            description.cloudKitContainerOptions = NSPersistentCloudKitContainerOptions(
+                containerIdentifier: cloudKitContainerIdentifier
+            )
+            description.shouldAddStoreAsynchronously = false
+
+            guard let model = NSManagedObjectModel.makeManagedObjectModel(
+                for: [Child.self, Episode.self, CareEvent.self]
+            ) else {
+                throw CocoaError(.persistentStoreInvalidType)
+            }
+
+            let persistentContainer = NSPersistentCloudKitContainer(
+                name: "FeverCare",
+                managedObjectModel: model
+            )
+            persistentContainer.persistentStoreDescriptions = [description]
+
+            var loadError: Error?
+            persistentContainer.loadPersistentStores { _, error in
+                loadError = error
+            }
+            if let loadError {
+                throw loadError
+            }
+
+            try persistentContainer.initializeCloudKitSchema()
+            logger.info("Initialized Development CloudKit schema")
+
+            if let store = persistentContainer.persistentStoreCoordinator.persistentStores.first {
+                try persistentContainer.persistentStoreCoordinator.remove(store)
+            }
+        }
+    }
+    #endif
 
     private let container = Self.makeContainer()
 
