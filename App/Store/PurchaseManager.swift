@@ -15,6 +15,7 @@ final class PurchaseManager: ObservableObject {
 
     @Published private(set) var isPurchased = false
     @Published private(set) var product: Product?
+    @Published private(set) var isLoadingProduct = false
     @Published private(set) var isPurchasing = false
     @Published var lastError: String?
 
@@ -63,19 +64,51 @@ final class PurchaseManager: ObservableObject {
 
     // MARK: 商品与购买
 
-    func refresh() async {
+    func refresh(showProductError: Bool = false) async {
+        var ownsProduct = false
         for await result in Transaction.currentEntitlements {
             if case .verified(let transaction) = result,
                transaction.productID == Self.productID,
                transaction.revocationDate == nil {
-                isPurchased = true
+                ownsProduct = true
             }
         }
-        do {
-            product = try await Product.products(for: [Self.productID]).first
-        } catch {
-            logger.error("Failed to load product: \(error.localizedDescription)")
+        isPurchased = ownsProduct
+        await loadProduct(showError: showProductError)
+    }
+
+    /// StoreKit 在购买账户尚未认证、网络切换或沙盒暂时不可用时，可能返回空数组而不抛错。
+    /// 因此这里显式维护加载状态并做短重试，避免 UI 永久停在“价格加载中”。
+    func loadProduct(showError: Bool = true) async {
+        guard !isLoadingProduct else { return }
+        isLoadingProduct = true
+        defer { isLoadingProduct = false }
+
+        var lastLoadError: Error?
+        for attempt in 0..<3 {
+            if Task.isCancelled { return }
+            do {
+                if let loadedProduct = try await Product.products(for: [Self.productID]).first {
+                    product = loadedProduct
+                    return
+                }
+                logger.error("StoreKit returned no product for \(Self.productID, privacy: .public)")
+            } catch {
+                lastLoadError = error
+                logger.error("Failed to load product: \(error.localizedDescription, privacy: .public)")
+            }
+
+            if attempt < 2 {
+                try? await Task.sleep(nanoseconds: UInt64(attempt + 1) * 1_000_000_000)
+            }
         }
+
+        product = nil
+        guard showError else { return }
+        if let lastLoadError {
+            logger.error("Product loading exhausted retries: \(lastLoadError.localizedDescription, privacy: .public)")
+        }
+        lastError = "暂时无法从 App Store 获取价格。请检查网络和“媒体与购买项目”的登录状态后重试。"
     }
 
     func purchase() async {
@@ -103,7 +136,13 @@ final class PurchaseManager: ObservableObject {
     }
 
     func restore() async {
-        try? await AppStore.sync()
+        do {
+            try await AppStore.sync()
+        } catch {
+            logger.error("Restore failed: \(error.localizedDescription, privacy: .public)")
+            lastError = "无法连接 App Store 恢复购买，请检查账号登录和网络后重试。"
+            return
+        }
         await refresh()
         if isPurchased {
             Analytics.shared.track(.purchaseRestored)

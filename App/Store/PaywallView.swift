@@ -6,6 +6,7 @@ import StoreKit
 struct PaywallView: View {
     @ObservedObject private var purchases = PurchaseManager.shared
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
 
     private struct Feature: Identifiable {
         let id = UUID()
@@ -77,8 +78,19 @@ struct PaywallView: View {
             .background(Brand.pageBackground.ignoresSafeArea())
             .safeAreaInset(edge: .bottom) {
                 VStack(spacing: 10) {
+                    if purchases.product == nil && !purchases.isLoadingProduct {
+                        Text("暂时无法获取价格，请检查 App Store 的“媒体与购买项目”登录状态和网络，然后重试。")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+
                     Button {
                         Task {
+                            guard purchases.product != nil else {
+                                await purchases.loadProduct()
+                                return
+                            }
                             await purchases.purchase()
                             if purchases.isPurchased { dismiss() }
                         }
@@ -90,7 +102,7 @@ struct PaywallView: View {
                         }
                     }
                     .buttonStyle(BigActionButtonStyle())
-                    .disabled(purchases.isPurchasing || purchases.product == nil)
+                    .disabled(purchases.isPurchasing || purchases.isLoadingProduct)
 
                     Button("恢复购买") {
                         Task {
@@ -126,6 +138,17 @@ struct PaywallView: View {
         .onAppear {
             Analytics.shared.track(.paywallShown)
         }
+        .task {
+            if purchases.product == nil {
+                await purchases.loadProduct(showError: false)
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active, purchases.product == nil else { return }
+            Task {
+                await purchases.loadProduct(showError: false)
+            }
+        }
     }
 
     private var trialStatusText: String {
@@ -138,7 +161,10 @@ struct PaywallView: View {
         if let price = purchases.product?.displayPrice {
             return "\(price) 买断,永久使用"
         }
-        return "价格加载中…"
+        if purchases.isLoadingProduct {
+            return "价格加载中…"
+        }
+        return "重新加载价格"
     }
 }
 
